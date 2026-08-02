@@ -434,34 +434,32 @@
     <div class="findings-grid">
       <div class="finding-card">
         <h3>Rendering quality is stable; tracking accuracy is not</h3>
-        <p>Across all three hyperparameter sweeps, PSNR follows a consistent, well-behaved curve for every scene —
-        typically peaking at or near the baseline setting. ATE RMSE, by contrast, has a scene-dependent optimum
+        <p>Across all three hyperparameter sweeps, PSNR follows a consistent, well-behaved curve for every scene which
+        typically peaks at or near the baseline setting (0.99 - 0.9999). ATE RMSE, by contrast, has a scene-dependent optimum
         that shifts across hyperparameter values, sometimes disagreeing with the rendering-optimal setting entirely.</p>
       </div>
 
       <div class="finding-card">
         <h3>Synthetic scenes swing harder than real-world scenes</h3>
-        <p>In the photometric loss weight sweep, Replica scenes (Office2, Room0) show an ~17–18 dB PSNR range across
-        weights, while TUM scenes (fr1_desk, fr2_xyz) span only ~4–7 dB. This is consistent with real sensor noise,
-        exposure variation, and motion blur compressing the dynamic range of the photometric signal — though with
-        only two scenes per domain, this remains a plausible explanation rather than a statistically established one.</p>
+        <p>In the photometric loss weight experiment, synthetic Replica scenes (Office2, Room0) show an ~17–18 dB PSNR range across
+        weights, while real world TUM scenes (fr1_desk, fr2_xyz) span only ~4–7 dB. This is consistent with real sensor noise,
+        exposure variation, and motion blur compressing the dynamic range of the photometric signal. Although with
+        only two scenes per domain, this remains a plausible explanation rather than statistically proven.</p>
       </div>
 
       <div class="finding-card warn">
         <h3>Isotropic regularization can flip direction within the same domain</h3>
         <p>Under MonoGS's isotropic regularization sweep, Office2's ATE improves monotonically with increasing
-        λ<sub>iso</sub>, while Room0's ATE worsens monotonically — despite both being synthetic Replica scenes
+        λ<sub>iso</sub>, while Room0's ATE worsens monotonically,  despite both being synthetic Replica scenes
         rendered under identical conditions. Scene-dependence here is not fully explained by the synthetic-vs-real
-        split alone.</p>
+        split alone. A further study focused on isotropic regularisation is warranted to better understand its sensitivity.</p>
       </div>
 
       <div class="finding-card warn">
         <h3>Anisotropic vs. isotropic Gaussians (MonoGS only)</h3>
         <p>Anisotropic Gaussians outperform isotropic ones on PSNR for all four scenes in MonoGS. This is expected:
         MonoGS's isotropic variant is a post-hoc retrofit (averaging the two in-plane scale parameters across all
-        three axes), not a native design as in SplaTAM. This finding is scoped strictly to within-MonoGS settings —
-        no cross-framework hyperparameter uniformization was performed, so it cannot be read as a MonoGS-vs-SplaTAM
-        comparison.</p>
+        three axes), not a native design as in SplaTAM. This finding is scoped strictly to within-MonoGS settings.</p>
       </div>
     </div>
   </div>
@@ -1042,7 +1040,7 @@
   <div class="wrap">
     <div class="eyebrow">Reproducibility</div>
     <h2>Data &amp; code</h2>
-    <p class="lead">Experiments were run on a shared DGX-1 / V100 cluster using SplaTAM and MonoGS on Replica (Office2, Room0)
+    <p class="lead">Experiments were run on a T4 GPU using SplaTAM and MonoGS on Replica (Office2, Room0)
     and TUM RGB-D (fr1_desk, fr2_xyz) scenes.</p>
     <div class="placeholder">
       <span class="tag">Placeholder</span>
