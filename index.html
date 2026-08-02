@@ -1,0 +1,1432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Examining the Convergence and Hyperparameter Sensitivity on 3D Gaussian Splatting-Based Visual SLAM — Project Page</title>
+<meta name="description" content="Supplementary material: full sweep tables and figures for a hyperparameter sensitivity study of SplaTAM and MonoGS.">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --bg: #FAFAF8;
+    --surface: #F1F2EE;
+    --surface-line: #E2E4DE;
+    --ink: #1B1F23;
+    --ink-soft: #565F68;
+    --ink-faint: #8A929A;
+    --accent: #0072B2;     /* Okabe-Ito blue — reused from figures for cohesion */
+    --accent-warm: #D55E00; /* Okabe-Ito vermillion */
+    --office2: #0072B2;
+    --room0:   #E69F00;
+    --desk1:   #009E73;
+    --fr2xyz:  #D55E00;
+    --radius: 3px;
+    --maxw: 900px;
+  }
+
+  *{ box-sizing: border-box; }
+  html{ scroll-behavior: smooth; }
+
+  body{
+    margin:0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "IBM Plex Sans", system-ui, sans-serif;
+    font-size: 16px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1,h2,h3{
+    font-family: "Fraunces", Georgia, serif;
+    font-weight: 600;
+    color: var(--ink);
+    letter-spacing: -0.01em;
+  }
+
+  a{ color: var(--accent); text-decoration: none; border-bottom: 1px solid rgba(0,114,178,0.35); }
+  a:hover{ border-bottom-color: var(--accent); }
+
+  .eyebrow{
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    display:flex; align-items:center; gap:10px;
+    margin-bottom: 10px;
+  }
+  .eyebrow::before{
+    content:"";
+    width: 22px; height: 1px;
+    background: var(--accent-warm);
+    display:inline-block;
+  }
+
+  .wrap{ max-width: var(--maxw); margin: 0 auto; padding: 0 24px; }
+
+  /* ---------- Nav ---------- */
+  .topnav{
+    position: sticky; top:0; z-index: 50;
+    background: rgba(250,250,248,0.88);
+    backdrop-filter: blur(6px);
+    border-bottom: 1px solid var(--surface-line);
+  }
+  .topnav .wrap{
+    display:flex; align-items:center; justify-content:space-between;
+    padding-top:12px; padding-bottom:12px;
+    max-width: var(--maxw);
+  }
+  .topnav .brand{
+    font-family:"IBM Plex Mono", monospace;
+    font-size:0.8rem; font-weight:500; color: var(--ink);
+    border-bottom:none;
+  }
+  .topnav nav{ display:flex; gap: 20px; flex-wrap: wrap; }
+  .topnav nav a{
+    font-family:"IBM Plex Mono", monospace;
+    font-size: 0.75rem;
+    color: var(--ink-soft);
+    border-bottom: none;
+  }
+  .topnav nav a:hover{ color: var(--accent); }
+
+  /* ---------- Hero ---------- */
+  .hero{
+    position: relative;
+    padding: 96px 0 64px;
+    overflow: hidden;
+    border-bottom: 1px solid var(--surface-line);
+  }
+  .hero-dots{ position:absolute; inset:0; opacity:0.55; pointer-events:none; }
+  .hero .wrap{ position: relative; }
+  .hero .eyebrow{ margin-bottom: 18px; }
+  .hero h1{
+    font-size: clamp(1.9rem, 4vw, 2.7rem);
+    line-height: 1.15;
+    max-width: 100%;
+    margin: 0 0 22px;
+  }
+  .hero .subtitle{
+    color: var(--ink-soft);
+    max-width: 62ch;
+    font-size: 1.02rem;
+    margin-bottom: 28px;
+  }
+  .authors{
+    font-size: 0.95rem;
+    color: var(--ink);
+    margin-bottom: 6px;
+  }
+  .affil{
+    font-size: 0.85rem;
+    color: var(--ink-soft);
+    margin-bottom: 28px;
+  }
+  .cta-row{ display:flex; gap: 12px; flex-wrap: wrap; }
+  .btn{
+    font-family:"IBM Plex Mono", monospace;
+    font-size: 0.78rem;
+    padding: 10px 16px;
+    border-radius: var(--radius);
+    border: 1px solid var(--ink);
+    color: var(--ink);
+    border-bottom: 1px solid var(--ink);
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+  .btn:hover{ background: var(--ink); color: var(--bg); }
+  .btn.primary{
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+    border-bottom-color: var(--accent);
+  }
+  .btn.primary:hover{ background:#005a8c; border-color:#005a8c; }
+  .btn.placeholder{
+    color: var(--ink-faint);
+    border-color: var(--surface-line);
+    border-style: dashed;
+    border-bottom-style: dashed;
+    cursor: not-allowed;
+  }
+  .btn.placeholder:hover{ background: none; color: var(--ink-faint); }
+
+  /* ---------- Sections ---------- */
+  section{ padding: 64px 0; border-bottom: 1px solid var(--surface-line); }
+  section:last-of-type{ border-bottom: none; }
+  section h2{ font-size: 1.5rem; margin: 0 0 18px; }
+  section > .wrap > p.lead{ color: var(--ink-soft); max-width: 68ch; margin-bottom: 8px; }
+
+  /* ---------- Placeholder component ---------- */
+  .placeholder{
+    border: 1px dashed #C9A08A;
+    background: repeating-linear-gradient(135deg, rgba(213,94,0,0.04), rgba(213,94,0,0.04) 8px, rgba(213,94,0,0.0) 8px, rgba(213,94,0,0.0) 16px);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    margin: 10px 0;
+  }
+  .placeholder .tag{
+    font-family:"IBM Plex Mono", monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent-warm);
+    display:block;
+    margin-bottom: 6px;
+  }
+  .placeholder p, .placeholder span{
+    color: var(--ink-soft);
+    font-size: 0.92rem;
+    margin: 0;
+  }
+
+  /* ---------- Findings ---------- */
+  .findings-grid{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 18px;
+    margin-top: 20px;
+  }
+  .finding-card{
+    background: var(--surface);
+    border: 1px solid var(--surface-line);
+    border-left: 3px solid var(--accent);
+    border-radius: var(--radius);
+    padding: 20px 22px;
+  }
+  .finding-card h3{
+    font-size: 1.02rem;
+    margin: 0 0 8px;
+  }
+  .finding-card p{
+    font-size: 0.9rem;
+    color: var(--ink-soft);
+    margin: 0;
+  }
+  .finding-card.warn{ border-left-color: var(--accent-warm); }
+
+  /* ---------- Experiment blocks ---------- */
+  .exp-header{ display:flex; align-items:baseline; gap:14px; margin-bottom: 6px; }
+  .exp-num{
+    font-family:"IBM Plex Mono", monospace;
+    font-size: 0.85rem;
+    color: var(--ink-faint);
+  }
+
+  .legend-row{
+    display:flex; flex-wrap:wrap; gap: 18px;
+    margin: 18px 0 8px;
+    padding: 10px 14px;
+    background: var(--surface);
+    border: 1px solid var(--surface-line);
+    border-radius: var(--radius);
+    font-size: 0.8rem;
+  }
+  .legend-item{ display:flex; align-items:center; gap:7px; color: var(--ink-soft); }
+  .swatch{ width:11px; height:11px; border-radius:2px; display:inline-block; }
+
+  .chart-grid{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin: 16px 0 22px;
+  }
+  .chart-box{
+    background: #fff;
+    border: 1px solid var(--surface-line);
+    border-radius: var(--radius);
+    padding: 14px 12px 8px;
+  }
+  .chart-title{
+    font-family:"IBM Plex Mono", monospace;
+    font-size: 0.72rem;
+    color: var(--ink-soft);
+    text-align:center;
+    margin-bottom: 4px;
+    letter-spacing: 0.02em;
+  }
+  .chart-box svg{ width:100%; height:auto; display:block; }
+
+  /* ---------- Tables ---------- */
+  details.tbl{
+    background: var(--surface);
+    border: 1px solid var(--surface-line);
+    border-radius: var(--radius);
+    margin: 10px 0;
+    overflow:hidden;
+  }
+  details.tbl summary{
+    cursor: pointer;
+    list-style: none;
+    padding: 12px 16px;
+    font-family:"IBM Plex Mono", monospace;
+    font-size: 0.78rem;
+    color: var(--ink);
+    display:flex; align-items:center; gap:8px;
+    user-select:none;
+  }
+  details.tbl summary::-webkit-details-marker{ display:none; }
+  details.tbl summary::before{
+    content:"+";
+    color: var(--accent-warm);
+    font-weight:600;
+    width:12px; text-align:center;
+  }
+  details.tbl[open] summary::before{ content:"–"; }
+  details.tbl .tbl-inner{ padding: 0 16px 16px; overflow-x:auto; }
+
+  table{
+    border-collapse: collapse;
+    width: 100%;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.8rem;
+    min-width: 480px;
+  }
+  table caption{
+    text-align:left;
+    font-size: 0.75rem;
+    color: var(--ink-soft);
+    margin-bottom: 8px;
+  }
+  th, td{
+    border-bottom: 1px solid var(--surface-line);
+    padding: 7px 12px;
+    text-align: right;
+  }
+  th:first-child, td:first-child{ text-align:left; color: var(--ink-soft); }
+  thead th{
+    color: var(--ink);
+    font-weight: 600;
+    border-bottom: 1px solid var(--ink-faint);
+  }
+  tr.baseline-row td{
+    background: rgba(0,114,178,0.06);
+    font-weight: 600;
+    color: var(--ink);
+  }
+  tr.baseline-row td:first-child::after{
+    content: " †";
+    color: var(--accent-warm);
+  }
+  .tbl-note{ font-size: 0.72rem; color: var(--ink-faint); margin-top: 8px; }
+
+  /* ---------- Citation ---------- */
+  .cite-block{
+    background: #14171A;
+    color: #D7DCE1;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.8rem;
+    padding: 18px 20px;
+    border-radius: var(--radius);
+    overflow-x: auto;
+    line-height: 1.55;
+  }
+
+  footer{ padding: 40px 0 60px; }
+  footer .wrap{ display:flex; justify-content:space-between; flex-wrap:wrap; gap:12px; }
+  footer p{ font-size: 0.78rem; color: var(--ink-faint); margin:0; }
+
+  @media (max-width: 760px){
+    .findings-grid{ grid-template-columns: 1fr; }
+    .chart-grid{ grid-template-columns: 1fr; }
+    .topnav nav{ display:none; }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    html{ scroll-behavior:auto; }
+  }
+</style>
+</head>
+<body>
+
+<div class="topnav">
+  <div class="wrap">
+    <span class="brand">3DGS-SLAM · sensitivity study</span>
+    <nav>
+      <a href="#abstract">Abstract</a>
+      <a href="#findings">Findings</a>
+      <a href="#exp-01">Experiments</a>
+      <a href="#reproducibility">Data</a>
+      <a href="#cite">Cite</a>
+    </nav>
+  </div>
+</div>
+
+<header class="hero">
+  <svg class="hero-dots" viewBox="0 0 900 340" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    <g>
+      <circle cx="120" cy="60" r="14" fill="#0072B2" opacity="0.10"/>
+      <circle cx="180" cy="40" r="7"  fill="#E69F00" opacity="0.14"/>
+      <circle cx="260" cy="90" r="20" fill="#009E73" opacity="0.08"/>
+      <circle cx="340" cy="50" r="6"  fill="#D55E00" opacity="0.16"/>
+      <circle cx="420" cy="110" r="11" fill="#0072B2" opacity="0.10"/>
+      <circle cx="500" cy="65" r="16" fill="#E69F00" opacity="0.09"/>
+      <circle cx="580" cy="95" r="8"  fill="#009E73" opacity="0.14"/>
+      <circle cx="650" cy="45" r="13" fill="#D55E00" opacity="0.09"/>
+      <circle cx="730" cy="85" r="9"  fill="#0072B2" opacity="0.13"/>
+      <circle cx="800" cy="55" r="18" fill="#E69F00" opacity="0.07"/>
+      <circle cx="860" cy="100" r="7" fill="#009E73" opacity="0.15"/>
+      <circle cx="60" cy="130" r="9"  fill="#D55E00" opacity="0.12"/>
+      <circle cx="220" cy="160" r="15" fill="#0072B2" opacity="0.08"/>
+      <circle cx="380" cy="170" r="7" fill="#009E73" opacity="0.13"/>
+      <circle cx="470" cy="150" r="10" fill="#E69F00" opacity="0.10"/>
+      <circle cx="610" cy="160" r="12" fill="#D55E00" opacity="0.08"/>
+      <circle cx="770" cy="150" r="6" fill="#0072B2" opacity="0.15"/>
+      <circle cx="150" cy="220" r="8" fill="#009E73" opacity="0.10"/>
+      <circle cx="300" cy="230" r="12" fill="#D55E00" opacity="0.07"/>
+      <circle cx="540" cy="220" r="9" fill="#0072B2" opacity="0.11"/>
+      <circle cx="700" cy="230" r="14" fill="#E69F00" opacity="0.08"/>
+    </g>
+  </svg>
+
+  <div class="wrap">
+    <div class="eyebrow">ICACSIS 2026 · Project Page</div>
+    <h1>Examining the Convergence and Hyperparameter Sensitivity on 3D Gaussian Splatting-Based Visual SLAM</h1>
+    
+    <p class="subtitle">
+      Supplementary material for a study comparing rendering-quality and tracking-accuracy sensitivity
+      across silhouette threshold, photometric loss weight, and isotropic regularization in
+      <strong>SplaTAM</strong> and <strong>MonoGS</strong>, on Replica and TUM RGB-D scenes.
+    </p>
+
+    <div class="authors">Muhammad Naufal Al Ghifari, Vektor Dewanto, Dina Chahyati</div>
+    <div class="affil">Faculty of Computer Science, Universitas Indonesia</div>
+
+    <!-- <div class="placeholder" style="max-width:560px; margin-bottom:26px;">
+      <span class="tag">Placeholder</span>
+      <p>Final paper title, author order, and affiliation formatting pending confirmation from the camera-ready draft.</p>
+    </div> -->
+
+    <div class="cta-row">
+      <a class="btn placeholder" aria-disabled="true">Paper PDF — placeholder</a>
+      <a class="btn placeholder" aria-disabled="true">Code repository — placeholder</a>
+      <a class="btn" href="#cite">BibTeX</a>
+    </div>
+  </div>
+</header>
+
+<section id="abstract">
+  <div class="wrap">
+    <div class="eyebrow">Abstract</div>
+    <h2>Summary</h2>
+    <p align="justify">3D Gaussian Splatting (3DGS) has recently emerged as a fast, differentiable alternative to neural implicit representations for visual Simultaneous Localisation and Mapping (SLAM). SplaTAM and MonoGS are two prominent full-SLAM implementations based on 3DGS. However, both frameworks report some of their hyperparameters largely as fixed defaults, with limited documentation of sensitivity to variation. This technical report addresses this gap through a series of controlled experiments on the Replica Room0 dataset. We evaluate: (1) SplaTAM's tracking sensitivity to the silhouette threshold τ and its mapping sensitivity to photometric loss weighting λ, (2) MonoGS's rendering-tracking trade-off under isotropic regularisation and under a fully isotropic Gaussian shape constraint, and (3) residual gradient norm behaviour to assess whether both frameworks' fixed iteration budgets are sufficient for optimisation convergence. Results show SplaTAM's default τ = 0.99 is a well-justified operating point, with accuracy degrading sharply only near the extremes of its valid range, while its mapping stage is largely insensitive to λ with the assumption that a non-zero photometric term is applied. MonoGS's isotropic regularisation reveals a rendering-tracking trade-off pattern. Furthermore, forcing fully isotropic Gaussians (in MonoGS framework) degrades rendering quality without a corresponding tracking improvements. It is important to note that this is attributed to the absence of a dedicated compensatory mechanism in the ablation implementation rather than to the inherent limitation of isotropic properties. Gradient norm analysis indicates that tracking optimisation in both frameworks had not fully converged within their predefined iteration limits, and select MonoGS mapping parameters exhibited non-monotonic gradient behaviour in later iterations. The evidence hints that the fixed optimisation iteration number is based on heuristic-based computational budgets rather than convergence-derived criteria.</p>
+    
+    <!-- <div class="placeholder">
+      <span class="tag">Placeholder</span>
+      <p>Full abstract text to be inserted from the final paper draft. This section will summarize the motivation,
+      method (hyperparameter sweeps across SplaTAM and MonoGS on Replica/TUM RGB-D scenes), and the central
+      finding that rendering-quality metrics are comparatively stable across hyperparameter choice while
+      tracking-accuracy optima are scene-dependent.</p>
+    </div> -->
+  </div>
+</section>
+
+<section id="findings">
+  <div class="wrap">
+    <div class="eyebrow">Summary</div>
+    <h2>Key findings</h2>
+    <p class="lead">Four observations recur across the sweeps below and organize the paper's central argument.</p>
+
+    <div class="findings-grid">
+      <div class="finding-card">
+        <h3>Rendering quality is stable; tracking accuracy is not</h3>
+        <p>Across all three hyperparameter sweeps, PSNR follows a consistent, well-behaved curve for every scene —
+        typically peaking at or near the baseline setting. ATE RMSE, by contrast, has a scene-dependent optimum
+        that shifts across hyperparameter values, sometimes disagreeing with the rendering-optimal setting entirely.</p>
+      </div>
+
+      <div class="finding-card">
+        <h3>Synthetic scenes swing harder than real-world scenes</h3>
+        <p>In the photometric loss weight sweep, Replica scenes (Office2, Room0) show an ~17–18 dB PSNR range across
+        weights, while TUM scenes (fr1_desk, fr2_xyz) span only ~4–7 dB. This is consistent with real sensor noise,
+        exposure variation, and motion blur compressing the dynamic range of the photometric signal — though with
+        only two scenes per domain, this remains a plausible explanation rather than a statistically established one.</p>
+      </div>
+
+      <div class="finding-card warn">
+        <h3>Isotropic regularization can flip direction within the same domain</h3>
+        <p>Under MonoGS's isotropic regularization sweep, Office2's ATE improves monotonically with increasing
+        λ<sub>iso</sub>, while Room0's ATE worsens monotonically — despite both being synthetic Replica scenes
+        rendered under identical conditions. Scene-dependence here is not fully explained by the synthetic-vs-real
+        split alone.</p>
+      </div>
+
+      <div class="finding-card warn">
+        <h3>Anisotropic vs. isotropic Gaussians (MonoGS only)</h3>
+        <p>Anisotropic Gaussians outperform isotropic ones on PSNR for all four scenes in MonoGS. This is expected:
+        MonoGS's isotropic variant is a post-hoc retrofit (averaging the two in-plane scale parameters across all
+        three axes), not a native design as in SplaTAM. This finding is scoped strictly to within-MonoGS settings —
+        no cross-framework hyperparameter uniformization was performed, so it cannot be read as a MonoGS-vs-SplaTAM
+        comparison.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="exp-01">
+  <div class="wrap">
+    <div class="exp-header">
+      <span class="exp-num">01 / 04</span>
+      <h2 style="margin:0;">SplaTAM — Silhouette Threshold (τ)</h2>
+    </div>
+    <p class="lead">Swept τ ∈ {0.00, 0.25, 0.50, 0.75, 0.99, 0.9999, 0.999999}. Baseline: τ = 0.99.</p>
+
+    <div class="legend-row" id="legend-01"></div>
+
+    <div class="chart-grid">
+      <div class="chart-box">
+        <div class="chart-title">Average PSNR (dB) ↑</div>
+        <svg id="chart-01-psnr"></svg>
+      </div>
+      <div class="chart-box">
+        <div class="chart-title">Final Avg. ATE RMSE (cm) ↓ — log scale</div>
+        <svg id="chart-01-ate"></svg>
+      </div>
+    </div>
+
+    <details class="tbl">
+      <summary>Full data — PSNR (dB) by scene and τ</summary>
+      <div class="tbl-inner">
+        <table>
+          <thead><tr><th>τ</th><th>Office2</th><th>Room0</th><th>fr1_desk</th><th>fr2_xyz</th></tr></thead>
+          <tbody id="tbody-01-psnr"></tbody>
+        </table>
+        <p class="tbl-note">† baseline configuration (τ = 0.99)</p>
+      </div>
+    </details>
+
+    <details class="tbl">
+      <summary>Full data — ATE RMSE (cm) by scene and τ</summary>
+      <div class="tbl-inner">
+        <table>
+          <thead><tr><th>τ</th><th>Office2</th><th>Room0</th><th>fr1_desk</th><th>fr2_xyz</th></tr></thead>
+          <tbody id="tbody-01-ate"></tbody>
+        </table>
+        <p class="tbl-note">† baseline configuration (τ = 0.99)</p>
+      </div>
+    </details>
+  </div>
+</section>
+
+<section id="exp-02">
+  <div class="wrap">
+    <div class="exp-header">
+      <span class="exp-num">02 / 04</span>
+      <h2 style="margin:0;">SplaTAM — Photometric Loss Weight</h2>
+    </div>
+    <p class="lead">Swept weight ∈ {0.0, 0.25, 0.5, 0.75, 1.0}. Baseline: weight = 0.5.</p>
+
+    <div class="legend-row" id="legend-02"></div>
+
+    <div class="chart-grid">
+      <div class="chart-box">
+        <div class="chart-title">Average PSNR (dB) ↑</div>
+        <svg id="chart-02-psnr"></svg>
+      </div>
+      <div class="chart-box">
+        <div class="chart-title">Final Avg. ATE RMSE (cm) ↓ — log scale</div>
+        <svg id="chart-02-ate"></svg>
+      </div>
+    </div>
+
+    <details class="tbl">
+      <summary>Full data — PSNR (dB) by scene and weight</summary>
+      <div class="tbl-inner">
+        <table>
+          <thead><tr><th>Weight</th><th>Office2</th><th>Room0</th><th>fr1_desk</th><th>fr2_xyz</th></tr></thead>
+          <tbody id="tbody-02-psnr"></tbody>
+        </table>
+        <p class="tbl-note">† baseline configuration (weight = 0.5)</p>
+      </div>
+    </details>
+
+    <details class="tbl">
+      <summary>Full data — ATE RMSE (cm) by scene and weight</summary>
+      <div class="tbl-inner">
+        <table>
+          <thead><tr><th>Weight</th><th>Office2</th><th>Room0</th><th>fr1_desk</th><th>fr2_xyz</th></tr></thead>
+          <tbody id="tbody-02-ate"></tbody>
+        </table>
+        <p class="tbl-note">† baseline configuration (weight = 0.5)</p>
+      </div>
+    </details>
+  </div>
+</section>
+
+<section id="exp-03">
+  <div class="wrap">
+    <div class="exp-header">
+      <span class="exp-num">03 / 04</span>
+      <h2 style="margin:0;">MonoGS — Isotropic Regularization (λ<sub>iso</sub>)</h2>
+    </div>
+    <p class="lead">Swept λ<sub>iso</sub> ∈ {0, 1, 5, 10, 20, 50}. Baseline: λ<sub>iso</sub> = 10.</p>
+
+    <div class="legend-row" id="legend-03"></div>
+
+    <div class="chart-grid">
+      <div class="chart-box">
+        <div class="chart-title">Average PSNR (dB) ↑</div>
+        <svg id="chart-03-psnr"></svg>
+      </div>
+      <div class="chart-box">
+        <div class="chart-title">ATE RMSE (m) ↓ — linear scale</div>
+        <svg id="chart-03-ate"></svg>
+      </div>
+    </div>
+
+    <details class="tbl">
+      <summary>Full data — PSNR (dB) by scene and λ<sub>iso</sub></summary>
+      <div class="tbl-inner">
+        <table>
+          <thead><tr><th>λ<sub>iso</sub></th><th>Office2</th><th>Room0</th><th>fr1_desk</th><th>fr2_xyz</th></tr></thead>
+          <tbody id="tbody-03-psnr"></tbody>
+        </table>
+        <p class="tbl-note">† baseline configuration (λ<sub>iso</sub> = 10)</p>
+      </div>
+    </details>
+
+    <details class="tbl">
+      <summary>Full data — ATE RMSE (m) by scene and λ<sub>iso</sub></summary>
+      <div class="tbl-inner">
+        <table>
+          <thead><tr><th>λ<sub>iso</sub></th><th>Office2</th><th>Room0</th><th>fr1_desk</th><th>fr2_xyz</th></tr></thead>
+          <tbody id="tbody-03-ate"></tbody>
+        </table>
+        <p class="tbl-note">† baseline configuration (λ<sub>iso</sub> = 10)</p>
+      </div>
+    </details>
+  </div>
+</section>
+
+<section id="exp-04">
+  <div class="wrap">
+    <div class="exp-header">
+      <span class="exp-num">04 / 04</span>
+      <h2 style="margin:0;">MonoGS — Anisotropic vs. Isotropic Gaussians</h2>
+    </div>
+    <p class="lead">
+      Isotropic Gaussians here are obtained post hoc by averaging the two in-plane scale parameters (s<sub>x</sub>, s<sub>y</sub>)
+      and assigning the result across all three axes, rather than a natively isotropic design. Scoped to within-MonoGS
+      comparison only.
+    </p>
+
+    <div class="legend-row" id="legend-04"></div>
+
+    <div class="chart-grid">
+      <div class="chart-box">
+        <div class="chart-title">Average PSNR (dB) ↑</div>
+        <svg id="chart-04-psnr"></svg>
+      </div>
+      <div class="chart-box">
+        <div class="chart-title">ATE RMSE (m) ↓</div>
+        <svg id="chart-04-ate"></svg>
+      </div>
+    </div>
+
+    <details class="tbl">
+      <summary>Full data — anisotropic vs. isotropic</summary>
+      <div class="tbl-inner">
+        <table>
+          <thead><tr><th>Scene</th><th>PSNR aniso</th><th>PSNR iso</th><th>% drop</th><th>ATE aniso</th><th>ATE iso</th></tr></thead>
+          <tbody id="tbody-04"></tbody>
+        </table>
+        <p class="tbl-note">% drop = (PSNR<sub>aniso</sub> − PSNR<sub>iso</sub>) / PSNR<sub>aniso</sub> × 100</p>
+      </div>
+    </details>
+  </div>
+</section>
+
+<section id="detailed-tables">
+  <div class="wrap">
+    <div class="exp-header">
+      <span class="exp-num">06</span>
+      <h2 style="margin:0;">Detailed Supplementary Tables (Full Metrics)</h2>
+    </div>
+    <p class="lead">
+      The summary tables in sections 01–04 report PSNR and ATE RMSE only. This section provides the complete
+      per-scene tables from the underlying technical report, including computation time, MS-SSIM/SSIM, LPIPS,
+      and depth accuracy, organized by experiment and scene. Baseline columns are highlighted; bold values mark
+      the best result per row, matching the paper's tables.
+    </p>
+
+    <!-- ===================== 6.1 Photometric Loss Weight ===================== -->
+    <h3 class="exp-subhead">6.1 — Photometric Loss Scaling Constant (λ)</h3>
+
+    <details class="tbl">
+      <summary>Table — Photometric loss λ, full metrics (Replica Room0)</summary>
+      <div class="tbl-inner">
+        <table>
+          <thead>
+            <tr>
+              <th>Metric</th><th>λ = 1.00</th><th>λ = 0.75</th><th class="baseline-col">λ = 0.50 (Base)</th><th>λ = 0.25</th><th>λ = 0.00</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="stage-row"><td colspan="6">Computation Time</td></tr>
+            <tr><td>Tracking Iter./Frame (ms/s)</td><td>37.63 / 1.13</td><td><strong>36.92 / 1.11</strong></td><td class="baseline-col">38.42 / 1.15</td><td>37.68 / 1.13</td><td>40.55 / 1.22</td></tr>
+            <tr><td>Mapping Iter./Frame (ms/s)</td><td>44.76 / 2.24</td><td><strong>43.71 / 2.19</strong></td><td class="baseline-col">45.53 / 2.28</td><td>44.53 / 2.23</td><td>47.26 / 2.36</td></tr>
+            <tr class="stage-row"><td colspan="6">Rendering Quality</td></tr>
+            <tr><td>Average PSNR</td><td><strong>32.78</strong></td><td>32.58</td><td class="baseline-col">32.28</td><td>31.94</td><td>20.66</td></tr>
+            <tr><td>Average MS-SSIM</td><td><strong>0.980</strong></td><td>0.979</td><td class="baseline-col">0.978</td><td>0.976</td><td>0.756</td></tr>
+            <tr><td>Average LPIPS</td><td><strong>0.057</strong></td><td>0.061</td><td class="baseline-col">0.064</td><td>0.071</td><td>0.391</td></tr>
+            <tr class="stage-row"><td colspan="6">Trajectory &amp; Geometric Accuracy</td></tr>
+            <tr><td>Final Avg. ATE RMSE (cm)</td><td><strong>0.35</strong></td><td>0.38</td><td class="baseline-col">0.38</td><td>0.36</td><td>0.66</td></tr>
+            <tr><td>Average Depth RMSE/L1 (cm)</td><td>0.72</td><td>0.72</td><td class="baseline-col"><strong>0.70</strong></td><td><strong>0.70</strong></td><td><strong>0.70</strong></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </details>
+
+    <details class="tbl">
+      <summary>Table — Photometric loss λ, full metrics (Replica Office2)</summary>
+      <div class="tbl-inner">
+        <table>
+          <thead>
+            <tr>
+              <th>Metric</th><th>λ = 1.00</th><th>λ = 0.75</th><th class="baseline-col">λ = 0.50 (Base)</th><th>λ = 0.25</th><th>λ = 0.00</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="stage-row"><td colspan="6">Computation Time</td></tr>
+            <tr><td>Tracking Iteration (ms)</td><td><strong>30.01</strong></td><td>30.36</td><td class="baseline-col">30.44</td><td>30.85</td><td>31.09</td></tr>
+            <tr><td>Tracking Frame (s)</td><td><strong>0.90</strong></td><td>0.91</td><td class="baseline-col">0.91</td><td>0.93</td><td>0.93</td></tr>
+            <tr><td>Mapping Iteration (ms)</td><td><strong>37.81</strong></td><td>38.29</td><td class="baseline-col">38.52</td><td>39.01</td><td>38.80</td></tr>
+            <tr><td>Mapping Frame (s)</td><td><strong>1.89</strong></td><td>1.91</td><td class="baseline-col">1.93</td><td>1.95</td><td>1.94</td></tr>
+            <tr class="stage-row"><td colspan="6">Rendering Quality</td></tr>
+            <tr><td>Average PSNR</td><td><strong>33.08</strong></td><td>33.05</td><td class="baseline-col">32.80</td><td>32.28</td><td>20.16</td></tr>
+            <tr><td>Average MS-SSIM</td><td><strong>0.980</strong></td><td><strong>0.980</strong></td><td class="baseline-col">0.979</td><td>0.978</td><td>0.781</td></tr>
+            <tr><td>Average LPIPS</td><td><strong>0.057</strong></td><td><strong>0.057</strong></td><td class="baseline-col">0.061</td><td>0.064</td><td>0.275</td></tr>
+            <tr class="stage-row"><td colspan="6">Trajectory &amp; Geometric Accuracy</td></tr>
+            <tr><td>Final Avg. ATE RMSE (cm)</td><td>0.38</td><td>0.37</td><td class="baseline-col">0.35</td><td><strong>0.34</strong></td><td>1.12</td></tr>
+            <tr><td>Average Depth L1 (cm)</td><td>0.82</td><td><strong>0.74</strong></td><td class="baseline-col">0.75</td><td>0.77</td><td>0.86</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </details>
+
+    <details class="tbl">
+      <summary>Table — Photometric loss λ, full metrics (TUM fr1_desk)</summary>
+      <div class="tbl-inner">
+        <table>
+          <thead>
+            <tr>
+              <th>Metric</th><th>λ = 1.00</th><th>λ = 0.75</th><th class="baseline-col">λ = 0.50 (Base)</th><th>λ = 0.25</th><th>λ = 0.00</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="stage-row"><td colspan="6">Computation Time</td></tr>
+            <tr><td>Tracking Iteration (ms)</td><td>42.70</td><td><strong>40.67</strong></td><td class="baseline-col">42.21</td><td>41.95</td><td>44.25</td></tr>
+            <tr><td>Tracking Frame (s)</td><td>8.53</td><td><strong>8.12</strong></td><td class="baseline-col">8.43</td><td>8.38</td><td>8.84</td></tr>
+            <tr><td>Mapping Iteration (ms)</td><td>53.19</td><td><strong>50.97</strong></td><td class="baseline-col">52.92</td><td>52.45</td><td>55.33</td></tr>
+            <tr><td>Mapping Frame (s)</td><td>1.60</td><td><strong>1.53</strong></td><td class="baseline-col">1.59</td><td>1.57</td><td>1.66</td></tr>
+            <tr class="stage-row"><td colspan="6">Rendering Quality</td></tr>
+            <tr><td>Average PSNR</td><td>21.86</td><td>21.99</td><td class="baseline-col"><strong>22.18</strong></td><td>21.78</td><td>15.50</td></tr>
+            <tr><td>Average MS-SSIM</td><td>0.849</td><td><strong>0.855</strong></td><td class="baseline-col"><strong>0.855</strong></td><td>0.851</td><td>0.572</td></tr>
+            <tr><td>Average LPIPS</td><td>0.238</td><td>0.232</td><td class="baseline-col"><strong>0.230</strong></td><td>0.240</td><td>0.453</td></tr>
+            <tr class="stage-row"><td colspan="6">Trajectory &amp; Geometric Accuracy</td></tr>
+            <tr><td>Final Avg. ATE RMSE (cm)</td><td><strong>3.25</strong></td><td>3.26</td><td class="baseline-col">3.35</td><td>3.35</td><td>4.24</td></tr>
+            <tr><td>Average Depth L1 (cm)</td><td>3.58</td><td>3.21</td><td class="baseline-col">2.90</td><td>2.69</td><td><strong>2.05</strong></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </details>
+
+    <div class="placeholder">
+      <span class="tag">Placeholder</span>
+      <p>Full metrics table for TUM fr2_xyz under the photometric loss weight sweep is pending processing and will
+      be added here.</p>
+    </div>
+
+    <!-- ===================== 6.2 Silhouette Threshold ===================== -->
+    <h3 class="exp-subhead">6.2 — Silhouette Threshold (τ)</h3>
+
+    <details class="tbl">
+      <summary>Table — Silhouette threshold τ, full metrics (Replica Room0)</summary>
+      <div class="tbl-inner">
+        <table>
+          <thead>
+            <tr>
+              <th>Metric</th><th>τ = 0.00</th><th>τ = 0.25</th><th>τ = 0.50</th><th>τ = 0.75</th><th class="baseline-col">τ = 0.99 (Base)</th><th>τ = 0.9999</th><th>τ = 0.999999</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="stage-row"><td colspan="8">Computation Time</td></tr>
+            <tr><td>Tracking Iter./Frame (ms/s)</td><td>20.64 / 0.62</td><td>29.63 / 0.89</td><td>36.61 / 1.10</td><td>37.39 / 1.12</td><td class="baseline-col">38.42 / 1.15</td><td>35.16 / 1.05</td><td><strong>15.10 / 0.45</strong></td></tr>
+            <tr><td>Mapping Iter./Frame (ms/s)</td><td>23.72 / 1.19</td><td>33.16 / 1.66</td><td>43.10 / 2.16</td><td>44.04 / 2.20</td><td class="baseline-col">45.53 / 2.28</td><td>45.15 / 2.26</td><td><strong>20.08 / 1.00</strong></td></tr>
+            <tr class="stage-row"><td colspan="8">Rendering Quality</td></tr>
+            <tr><td>Average PSNR</td><td>13.99</td><td>15.44</td><td>29.66</td><td>32.03</td><td class="baseline-col"><strong>32.28</strong></td><td>31.38</td><td>13.26</td></tr>
+            <tr><td>Average MS-SSIM</td><td>0.389</td><td>0.433</td><td>0.965</td><td>0.977</td><td class="baseline-col"><strong>0.978</strong></td><td>0.977</td><td>0.348</td></tr>
+            <tr><td>Average LPIPS</td><td>0.723</td><td>0.640</td><td>0.093</td><td>0.068</td><td class="baseline-col"><strong>0.064</strong></td><td>0.068</td><td>0.831</td></tr>
+            <tr class="stage-row"><td colspan="8">Trajectory &amp; Geometric Accuracy</td></tr>
+            <tr><td>Final Avg. ATE RMSE (cm)</td><td>118.55</td><td>51.95</td><td>2.58</td><td>0.74</td><td class="baseline-col"><strong>0.38</strong></td><td>0.47</td><td>112.03</td></tr>
+            <tr><td>Average Depth L1 (cm)</td><td>29.02</td><td>29.76</td><td>1.10</td><td>0.71</td><td class="baseline-col"><strong>0.70</strong></td><td>0.76</td><td>60.29</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </details>
+
+    <details class="tbl">
+      <summary>Table — Silhouette threshold τ, full metrics (Replica Office2)</summary>
+      <div class="tbl-inner">
+        <table>
+          <thead>
+            <tr>
+              <th>Metric</th><th>τ = 0.00</th><th>τ = 0.25</th><th>τ = 0.50</th><th>τ = 0.75</th><th class="baseline-col">τ = 0.99 (Base)</th><th>τ = 0.9999</th><th>τ = 0.999999</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="stage-row"><td colspan="8">Computation Time</td></tr>
+            <tr><td>Tracking Iteration (ms)</td><td><strong>25.72</strong></td><td>29.52</td><td>30.16</td><td>30.33</td><td class="baseline-col">30.44</td><td>27.24</td><td>14.09</td></tr>
+            <tr><td>Tracking Frame (s)</td><td><strong>0.77</strong></td><td>0.89</td><td>0.90</td><td>0.91</td><td class="baseline-col">0.91</td><td>0.82</td><td>0.42</td></tr>
+            <tr><td>Mapping Iteration (ms)</td><td><strong>30.23</strong></td><td>36.77</td><td>37.93</td><td>38.27</td><td class="baseline-col">38.52</td><td>37.38</td><td>18.64</td></tr>
+            <tr><td>Mapping Frame (s)</td><td><strong>1.51</strong></td><td>1.84</td><td>1.90</td><td>1.91</td><td class="baseline-col">1.93</td><td>1.87</td><td>0.93</td></tr>
+            <tr class="stage-row"><td colspan="8">Rendering Quality</td></tr>
+            <tr><td>Average PSNR</td><td>14.37</td><td>30.64</td><td>32.01</td><td>32.48</td><td class="baseline-col"><strong>32.80</strong></td><td>31.27</td><td>10.84</td></tr>
+            <tr><td>Average MS-SSIM</td><td>0.561</td><td>0.967</td><td>0.978</td><td>0.979</td><td class="baseline-col"><strong>0.979</strong></td><td>0.974</td><td>0.428</td></tr>
+            <tr><td>Average LPIPS</td><td>0.535</td><td>0.077</td><td>0.063</td><td>0.061</td><td class="baseline-col"><strong>0.061</strong></td><td>0.069</td><td>0.705</td></tr>
+            <tr class="stage-row"><td colspan="8">Trajectory &amp; Geometric Accuracy</td></tr>
+            <tr><td>Final Avg. ATE RMSE (cm)</td><td>97.24</td><td>1.37</td><td>0.52</td><td>0.37</td><td class="baseline-col"><strong>0.35</strong></td><td>1.23</td><td>149.13</td></tr>
+            <tr><td>Average Depth L1 (cm)</td><td>21.49</td><td>1.09</td><td>0.77</td><td>0.81</td><td class="baseline-col"><strong>0.75</strong></td><td>0.89</td><td>66.17</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </details>
+
+    <details class="tbl">
+      <summary>Table — Silhouette threshold τ, full metrics (TUM fr1_desk)</summary>
+      <div class="tbl-inner">
+        <table>
+          <thead>
+            <tr>
+              <th>Metric</th><th>τ = 0.00</th><th>τ = 0.25</th><th>τ = 0.50</th><th>τ = 0.75</th><th class="baseline-col">τ = 0.99 (Base)</th><th>τ = 0.9999</th><th>τ = 0.999999</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="stage-row"><td colspan="8">Computation Time</td></tr>
+            <tr><td>Tracking Iteration (ms)</td><td>39.79</td><td>42.34</td><td>40.94</td><td>42.03</td><td class="baseline-col">42.21</td><td><strong>38.14</strong></td><td>40.74</td></tr>
+            <tr><td>Tracking Frame (s)</td><td>7.95</td><td>8.46</td><td>8.18</td><td>8.39</td><td class="baseline-col">8.43</td><td><strong>7.62</strong></td><td>8.14</td></tr>
+            <tr><td>Mapping Iteration (ms)</td><td><strong>49.25</strong></td><td>52.19</td><td>51.05</td><td>52.28</td><td class="baseline-col">52.92</td><td>51.49</td><td>50.83</td></tr>
+            <tr><td>Mapping Frame (s)</td><td><strong>1.48</strong></td><td>1.57</td><td>1.53</td><td>1.57</td><td class="baseline-col">1.59</td><td>1.54</td><td>1.52</td></tr>
+            <tr class="stage-row"><td colspan="8">Rendering Quality</td></tr>
+            <tr><td>Average PSNR</td><td>17.77</td><td>19.56</td><td>20.96</td><td>21.08</td><td class="baseline-col">22.18</td><td><strong>22.96</strong></td><td>18.65</td></tr>
+            <tr><td>Average MS-SSIM</td><td>0.734</td><td>0.766</td><td>0.799</td><td>0.827</td><td class="baseline-col">0.855</td><td><strong>0.882</strong></td><td>0.761</td></tr>
+            <tr><td>Average LPIPS</td><td>0.328</td><td>0.299</td><td>0.281</td><td>0.259</td><td class="baseline-col">0.230</td><td><strong>0.202</strong></td><td>0.305</td></tr>
+            <tr class="stage-row"><td colspan="8">Trajectory &amp; Geometric Accuracy</td></tr>
+            <tr><td>Final Avg. ATE RMSE (cm)</td><td>10.91</td><td>5.47</td><td>4.45</td><td>3.57</td><td class="baseline-col">3.35</td><td><strong>3.25</strong></td><td>7.17</td></tr>
+            <tr><td>Average Depth L1 (cm)</td><td>3.33</td><td>3.09</td><td>2.91</td><td>3.13</td><td class="baseline-col">2.90</td><td><strong>1.88</strong></td><td>3.09</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </details>
+
+    <div class="placeholder">
+      <span class="tag">Placeholder</span>
+      <p>Full metrics table for TUM fr2_xyz under the silhouette threshold sweep is pending processing and will be
+      added here.</p>
+    </div>
+
+    <!-- ===================== 6.3 Isotropic Regularization ===================== -->
+    <h3 class="exp-subhead">6.3 — Isotropic Regularization (λ<sub>iso</sub>) — MonoGS</h3>
+
+    <details class="tbl">
+      <summary>Table — Isotropic regularization λ<sub>iso</sub>, full metrics (Replica Room0)</summary>
+      <div class="tbl-inner">
+        <table>
+          <thead>
+            <tr>
+              <th>Metric</th><th>λ<sub>iso</sub> = 0</th><th>λ<sub>iso</sub> = 1</th><th>λ<sub>iso</sub> = 5</th><th class="baseline-col">λ<sub>iso</sub> = 10 (Base)</th><th>λ<sub>iso</sub> = 20</th><th>λ<sub>iso</sub> = 50</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="stage-row"><td colspan="7">Computation</td></tr>
+            <tr><td>Total FPS</td><td>0.5389</td><td>0.5952</td><td><strong>0.6688</strong></td><td class="baseline-col">0.6663</td><td>0.6571</td><td>0.6399</td></tr>
+            <tr class="stage-row"><td colspan="7">Rendering Quality</td></tr>
+            <tr><td>Average PSNR</td><td>33.0393</td><td>33.1197</td><td>33.2115</td><td class="baseline-col"><strong>33.5478</strong></td><td>33.5301</td><td>33.5301</td></tr>
+            <tr><td>Average SSIM</td><td>0.9403</td><td>0.9428</td><td>0.9408</td><td class="baseline-col">0.9445</td><td><strong>0.9450</strong></td><td>0.9429</td></tr>
+            <tr><td>Average LPIPS</td><td>0.0962</td><td>0.0885</td><td>0.0833</td><td class="baseline-col">0.0790</td><td>0.0747</td><td><strong>0.0744</strong></td></tr>
+            <tr class="stage-row"><td colspan="7">Trajectory (ATE)</td></tr>
+            <tr><td>ATE RMSE (m)</td><td><strong>0.01142</strong></td><td>0.01564</td><td>0.01475</td><td class="baseline-col">0.01492</td><td>0.01247</td><td>0.01511</td></tr>
+            <tr><td>ATE Median (m)</td><td><strong>0.00841</strong></td><td>0.01234</td><td>0.01107</td><td class="baseline-col">0.01111</td><td>0.00895</td><td>0.01021</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </details>
+
+    <details class="tbl">
+      <summary>Table — Isotropic regularization λ<sub>iso</sub>, full metrics (Replica Office2)</summary>
+      <div class="tbl-inner">
+        <table>
+          <thead>
+            <tr>
+              <th>Metric</th><th>λ<sub>iso</sub> = 0</th><th>λ<sub>iso</sub> = 1</th><th>λ<sub>iso</sub> = 5</th><th class="baseline-col">λ<sub>iso</sub> = 10 (Base)</th><th>λ<sub>iso</sub> = 20</th><th>λ<sub>iso</sub> = 50</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="stage-row"><td colspan="7">Computation</td></tr>
+            <tr><td>Total FPS</td><td>0.5315</td><td>0.5751</td><td>0.5870</td><td class="baseline-col">0.5869</td><td>0.5934</td><td><strong>0.5937</strong></td></tr>
+            <tr class="stage-row"><td colspan="7">Rendering Quality</td></tr>
+            <tr><td>Average PSNR</td><td>35.4849</td><td>36.1489</td><td>36.2357</td><td class="baseline-col"><strong>36.2507</strong></td><td>36.2151</td><td>36.1422</td></tr>
+            <tr><td>Average SSIM</td><td>0.9551</td><td>0.9600</td><td>0.9614</td><td class="baseline-col">0.9626</td><td>0.9627</td><td><strong>0.9634</strong></td></tr>
+            <tr><td>Average LPIPS</td><td>0.0972</td><td>0.0833</td><td>0.0765</td><td class="baseline-col">0.0731</td><td>0.0694</td><td><strong>0.0650</strong></td></tr>
+            <tr class="stage-row"><td colspan="7">Trajectory (ATE)</td></tr>
+            <tr><td>ATE RMSE (m)</td><td>0.00419</td><td>0.00331</td><td>0.00317</td><td class="baseline-col">0.00294</td><td>0.00279</td><td><strong>0.00244</strong></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </details>
+
+    <details class="tbl">
+      <summary>Table — Isotropic regularization λ<sub>iso</sub>, full metrics (TUM fr1_desk)</summary>
+      <div class="tbl-inner">
+        <table>
+          <thead>
+            <tr>
+              <th>Metric</th><th>λ<sub>iso</sub> = 0</th><th>λ<sub>iso</sub> = 1</th><th>λ<sub>iso</sub> = 5</th><th class="baseline-col">λ<sub>iso</sub> = 10 (Base)</th><th>λ<sub>iso</sub> = 20</th><th>λ<sub>iso</sub> = 50</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="stage-row"><td colspan="7">Computation</td></tr>
+            <tr><td>Total FPS</td><td>0.4919</td><td>0.5157</td><td>0.5422</td><td class="baseline-col"><strong>0.5617</strong></td><td>0.5534</td><td>0.5494</td></tr>
+            <tr class="stage-row"><td colspan="7">Rendering Quality</td></tr>
+            <tr><td>Average PSNR</td><td>23.3943</td><td>23.4595</td><td>23.4110</td><td class="baseline-col">23.5345</td><td><strong>23.5358</strong></td><td>23.4759</td></tr>
+            <tr><td>Average SSIM</td><td>0.7764</td><td>0.7807</td><td>0.7779</td><td class="baseline-col"><strong>0.7849</strong></td><td>0.7830</td><td>0.7832</td></tr>
+            <tr><td>Average LPIPS</td><td>0.2621</td><td>0.2534</td><td>0.2564</td><td class="baseline-col">0.2475</td><td><strong>0.2451</strong></td><td>0.2459</td></tr>
+            <tr class="stage-row"><td colspan="7">Trajectory (ATE)</td></tr>
+            <tr><td>ATE RMSE (m)</td><td>0.01545</td><td>0.01608</td><td>0.01574</td><td class="baseline-col">0.01471</td><td><strong>0.01404</strong></td><td>0.01455</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </details>
+
+    <div class="placeholder">
+      <span class="tag">Placeholder</span>
+      <p>Full metrics table for TUM fr2_xyz under the isotropic regularization sweep is pending processing and
+      will be added here.</p>
+    </div>
+
+    <!-- ===================== 6.4 Anisotropic vs Isotropic ===================== -->
+    <h3 class="exp-subhead">6.4 — Anisotropic vs. Isotropic Gaussians — MonoGS</h3>
+
+    <details class="tbl">
+      <summary>Table — Anisotropic vs. isotropic, full metrics (Replica Room0)</summary>
+      <div class="tbl-inner">
+        <table>
+          <thead><tr><th>Metric</th><th>Anisotropic</th><th>Isotropic</th></tr></thead>
+          <tbody>
+            <tr class="stage-row"><td colspan="3">Rendering Quality</td></tr>
+            <tr><td>Average PSNR</td><td><strong>33.5478</strong></td><td>30.0852</td></tr>
+            <tr><td>Average SSIM</td><td><strong>0.9445</strong></td><td>0.8871</td></tr>
+            <tr><td>Average LPIPS</td><td><strong>0.0790</strong></td><td>0.1919</td></tr>
+            <tr class="stage-row"><td colspan="3">Trajectory (ATE)</td></tr>
+            <tr><td>RMSE ATE</td><td>0.01492</td><td><strong>0.01465</strong></td></tr>
+            <tr><td>Mean ATE</td><td>0.01293 ± 0.00745</td><td><strong>0.01288 ± 0.00699</strong></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </details>
+
+    <details class="tbl">
+      <summary>Table — Anisotropic vs. isotropic, full metrics (Replica Office2)</summary>
+      <div class="tbl-inner">
+        <table>
+          <thead><tr><th>Metric</th><th>Anisotropic</th><th>Isotropic</th></tr></thead>
+          <tbody>
+            <tr class="stage-row"><td colspan="3">Rendering Quality</td></tr>
+            <tr><td>Average PSNR</td><td><strong>36.2507</strong></td><td>34.1847</td></tr>
+            <tr><td>Average SSIM</td><td><strong>0.9626</strong></td><td>0.9467</td></tr>
+            <tr><td>Average LPIPS</td><td><strong>0.0731</strong></td><td>0.1199</td></tr>
+            <tr class="stage-row"><td colspan="3">Trajectory (ATE)</td></tr>
+            <tr><td>RMSE ATE</td><td><strong>0.00294</strong></td><td>0.00318</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </details>
+
+    <details class="tbl">
+      <summary>Table — Anisotropic vs. isotropic, full metrics (TUM fr1_desk)</summary>
+      <div class="tbl-inner">
+        <table>
+          <thead><tr><th>Metric</th><th>Anisotropic</th><th>Isotropic</th></tr></thead>
+          <tbody>
+            <tr class="stage-row"><td colspan="3">Rendering Quality</td></tr>
+            <tr><td>Average PSNR</td><td><strong>23.5345</strong></td><td>22.4783</td></tr>
+            <tr><td>Average SSIM</td><td><strong>0.7849</strong></td><td>0.7632</td></tr>
+            <tr><td>Average LPIPS</td><td><strong>0.2475</strong></td><td>0.2965</td></tr>
+            <tr class="stage-row"><td colspan="3">Trajectory (ATE)</td></tr>
+            <tr><td>RMSE ATE</td><td><strong>0.01471</strong></td><td>0.01545</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </details>
+
+    <div class="placeholder">
+      <span class="tag">Placeholder</span>
+      <p>Full metrics table for TUM fr2_xyz under the anisotropic-vs-isotropic comparison is pending processing
+      and will be added here.</p>
+    </div>
+
+  </div>
+</section>
+
+<section id="convergence">
+  <div class="wrap">
+    <div class="exp-header">
+      <span class="exp-num">05</span>
+      <h2 style="margin:0;">Convergence of Tracking and Mapping Gradients</h2>
+    </div>
+    <p class="lead">
+      Reported as mean L<sub>2</sub> norm at initialization and at the final iteration (60 and 100 iterations for
+      tracking and mapping respectively), alongside total and late-stage percentage reduction. This answers a
+      dedicated convergence research question from the underlying technical report, distinct from the sensitivity
+      sweeps above — shown here for Replica Room0 as a representative scene, with one table per framework in the paper.
+    </p>
+ 
+    <h3 class="exp-subhead">MonoGS — Replica Room0</h3>
+    <details class="tbl" open>
+      <summary>Table 3.6 — MonoGS gradient convergence (Room0)</summary>
+      <div class="tbl-inner">
+        <table>
+          <thead><tr><th>Parameter</th><th>Initial</th><th>Final</th><th>Total Reduction (%)</th><th>Late-Stage Decay (%)</th></tr></thead>
+          <tbody>
+            <tr class="stage-row"><td colspan="5">Tracking</td></tr>
+            <tr><td>cam_rot</td><td>0.583940</td><td>0.305293</td><td>47.72%</td><td>25.26%</td></tr>
+            <tr><td>cam_trans</td><td>0.178367</td><td>0.088519</td><td>50.37%</td><td>22.89%</td></tr>
+            <tr><td>exposure_a</td><td>0.004142</td><td>0.002055</td><td>50.39%</td><td>28.22%</td></tr>
+            <tr><td>exposure_b</td><td>0.007831</td><td>0.002374</td><td>69.68%</td><td>29.18%</td></tr>
+            <tr class="stage-row"><td colspan="5">Mapping</td></tr>
+            <tr><td>opacity</td><td>0.000368</td><td>0.000090</td><td>75.39%</td><td>8.77%</td></tr>
+            <tr><td>rotation</td><td>0.004128</td><td>0.003611</td><td>12.51%</td><td>−9.72%</td></tr>
+            <tr><td>scales</td><td>0.001867</td><td>0.000941</td><td>49.57%</td><td>0.93%</td></tr>
+            <tr><td>center</td><td>0.055357</td><td>0.046123</td><td>16.68%</td><td>−7.14%</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </details>
+ 
+    <h3 class="exp-subhead">SplaTAM — Replica Room0</h3>
+    <details class="tbl">
+      <summary>Table 3.7 — SplaTAM gradient convergence (Room0)</summary>
+      <div class="tbl-inner">
+        <table>
+          <thead><tr><th>Parameter</th><th>Initial</th><th>Final</th><th>Total Reduction (%)</th><th>Late-Stage Decay (%)</th></tr></thead>
+          <tbody>
+            <tr class="stage-row"><td colspan="5">Tracking</td></tr>
+            <tr><td>cam_rot</td><td>1,620,230.36</td><td>686,172.73</td><td>57.65%</td><td>24.31%</td></tr>
+            <tr><td>cam_trans</td><td>325,639.89</td><td>132,793.88</td><td>59.22%</td><td>25.95%</td></tr>
+            <tr class="stage-row"><td colspan="5">Mapping</td></tr>
+            <tr><td>opacity</td><td>0.000058</td><td>0.000031</td><td>46.99%</td><td>27.97%</td></tr>
+            <tr><td>rotation</td><td class="na">N/A</td><td class="na">N/A</td><td class="na">N/A</td><td class="na">N/A</td></tr>
+            <tr><td>scales</td><td>0.000305</td><td>0.000217</td><td>28.88%</td><td>11.34%</td></tr>
+            <tr><td>center</td><td>0.022471</td><td>0.018368</td><td>18.26%</td><td>6.52%</td></tr>
+          </tbody>
+        </table>
+        <p class="tbl-note">Mapping rotation: rotation gradients are not computed because of the shape of isotropic
+        Gaussians used in SplaTAM (i.e. perfectly spherical), which renders rotation irrelevant.</p>
+      </div>
+    </details>
+ 
+    <div class="placeholder">
+      <span class="tag">Placeholder</span>
+      <p>Convergence tables for the remaining scenes (Replica Office2, TUM fr1_desk, TUM fr2_xyz) for both MonoGS
+      and SplaTAM are pending processing and will be added here. Room0 is shown as the representative scene used
+      in the paper.</p>
+    </div>
+  </div>
+</section>
+
+<section id="reproducibility">
+  <div class="wrap">
+    <div class="eyebrow">Reproducibility</div>
+    <h2>Data &amp; code</h2>
+    <p class="lead">Experiments were run on a shared DGX-1 / V100 cluster using SplaTAM and MonoGS on Replica (Office2, Room0)
+    and TUM RGB-D (fr1_desk, fr2_xyz) scenes.</p>
+    <div class="placeholder">
+      <span class="tag">Placeholder</span>
+      <p>Links to the code repository, exact config files per run, and raw console-output logs will be added here
+      once the repository is finalized for release.</p>
+    </div>
+  </div>
+</section>
+
+<section id="cite">
+  <div class="wrap">
+    <div class="eyebrow">Citation</div>
+    <h2>Cite this work</h2>
+    <!-- <div class="placeholder" style="margin-bottom:14px;">
+      <span class="tag">Placeholder</span>
+      <p>BibTeX entry below is a template; venue, page numbers, and DOI to be filled in upon publication.</p>
+    </div> -->
+    <div class="cite-block">@inproceedings{alghifari2026sensitivity,<br>
+&nbsp;&nbsp;title&nbsp;&nbsp;&nbsp;&nbsp;= {Hyperparameter Sensitivity in 3D Gaussian Splatting-Based Visual SLAM},<br>
+&nbsp;&nbsp;author&nbsp;&nbsp;&nbsp;= {Al Ghifari, Muhammad Naufal and Chahyati, Dina and Dewanto, Vektor},<br>
+&nbsp;&nbsp;booktitle = {Proc. ICACSIS},<br>
+&nbsp;&nbsp;year&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= {2026},<br>
+&nbsp;&nbsp;note&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= {pages/DOI pending}<br>
+}</div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <p>Faculty of Computer Science, Universitas Indonesia</p>
+    <p>Project page — content generated from experiment logs; last updated manually.</p>
+  </div>
+</footer>
+
+<script>
+(function(){
+  "use strict";
+
+  // ---------- Palette (Okabe–Ito, matched to the paper's TikZ figures) ----------
+  var COLORS = { office2:"#0072B2", room0:"#E69F00", desk1:"#009E73", fr2xyz:"#D55E00" };
+  var SERIES_META = [
+    { key:"office2", label:"Replica Office2", color: COLORS.office2, marker:"circle" },
+    { key:"room0",   label:"Replica Room0",   color: COLORS.room0,   marker:"square" },
+    { key:"desk1",   label:"TUM fr1_desk",    color: COLORS.desk1,   marker:"triangle" },
+    { key:"fr2xyz",  label:"TUM fr2_xyz",     color: COLORS.fr2xyz,  marker:"diamond" }
+  ];
+
+  // ---------- Real experiment data ----------
+  var EXP01 = { // SplaTAM silhouette threshold
+    xLabels: ["0.00","0.25","0.50","0.75","0.99","0.9999","0.999999"],
+    baselineIndex: 4,
+    psnr: {
+      office2: [14.37, 30.64, 32.01, 32.48, 32.80, 31.27, 10.84],
+      room0:   [13.99, 15.44, 29.66, 32.03, 32.28, 31.38, 13.26],
+      desk1:   [17.77, 19.56, 20.96, 21.08, 22.18, 22.96, 18.65],
+      fr2xyz:  [22.25, 22.28, 22.34, 22.48, 22.83, 22.28, 22.26]
+    },
+    ate: {
+      office2: [97.24, 1.37, 0.52, 0.37, 0.35, 1.23, 149.13],
+      room0:   [118.55, 51.95, 2.58, 0.74, 0.38, 0.47, 112.03],
+      desk1:   [10.91, 5.47, 4.45, 3.57, 3.35, 3.25, 7.17],
+      fr2xyz:  [0.53, 0.52, 0.47, 0.60, 1.00, 1.05, 0.54]
+    }
+  };
+
+  var EXP02 = { // SplaTAM photometric loss weight
+    xLabels: ["0.0","0.25","0.5","0.75","1.0"],
+    baselineIndex: 2,
+    psnr: {
+      office2: [14.37, 30.64, 32.80, 32.48, 31.27],
+      room0:   [13.99, 15.44, 32.28, 32.03, 31.38],
+      desk1:   [17.77, 19.56, 22.18, 21.08, 19.80],
+      fr2xyz:  [16.10, 22.63, 22.83, 22.88, 22.61]
+    },
+    ate: {
+      office2: [97.24, 1.37, 0.35, 0.37, 1.23],
+      room0:   [118.55, 51.95, 0.38, 0.74, 0.47],
+      desk1:   [10.91, 5.47, 3.35, 3.57, 4.12],
+      fr2xyz:  [1.13, 1.01, 1.00, 0.97, 0.97]
+    }
+  };
+
+  var EXP03 = { // MonoGS isotropic regularization
+    xLabels: ["0","1","5","10","20","50"],
+    baselineIndex: 3,
+    psnr: {
+      office2: [35.4849, 36.1489, 36.2357, 36.2507, 36.2151, 36.1422],
+      room0:   [33.0393, 33.1197, 33.2115, 33.5478, 33.5301, 33.5301],
+      desk1:   [23.3943, 23.4595, 23.4110, 23.5345, 23.5358, 23.4759],
+      fr2xyz:  [26.6726, 25.9698, 25.5725, 26.4155, 26.3732, 25.2555]
+    },
+    ate: {
+      office2: [0.00419, 0.00331, 0.00317, 0.00294, 0.00279, 0.00244],
+      room0:   [0.01142, 0.01564, 0.01475, 0.01492, 0.01247, 0.01511],
+      desk1:   [0.01545, 0.01608, 0.01574, 0.01471, 0.01404, 0.01455],
+      fr2xyz:  [0.01650, 0.01443, 0.01486, 0.01355, 0.01359, 0.01393]
+    }
+  };
+
+  var EXP04 = { // MonoGS aniso vs iso
+    categories: ["Replica Room0","Replica Office2","TUM fr1_desk","TUM fr2_xyz"],
+    catColors: [COLORS.room0, COLORS.office2, COLORS.desk1, COLORS.fr2xyz],
+    psnrAniso: [33.5478, 36.2507, 23.5345, 26.4155],
+    psnrIso:   [30.0852, 34.1847, 22.4783, 26.3194],
+    ateAniso:  [0.01492, 0.00294, 0.01471, 0.01355],
+    ateIso:    [0.01465, 0.00318, 0.01545, 0.01558]
+  };
+
+  // ---------- SVG helpers ----------
+  var SVG_NS = "http://www.w3.org/2000/svg";
+  function el(tag, attrs){
+    var e = document.createElementNS(SVG_NS, tag);
+    for (var k in attrs){ e.setAttribute(k, attrs[k]); }
+    return e;
+  }
+  function marker(shape, x, y, color, size){
+    size = size || 5;
+    if (shape === "circle"){
+      return el("circle", {cx:x, cy:y, r:size*0.65, fill:color, stroke:"#fff", "stroke-width":0.6});
+    }
+    if (shape === "square"){
+      var s = size*1.1;
+      return el("rect", {x:x-s/2, y:y-s/2, width:s, height:s, fill:color, stroke:"#fff", "stroke-width":0.6});
+    }
+    if (shape === "triangle"){
+      var r = size*0.85;
+      var pts = [ [x, y-r], [x-r*0.95, y+r*0.75], [x+r*0.95, y+r*0.75] ].map(function(p){return p[0]+","+p[1];}).join(" ");
+      return el("polygon", {points:pts, fill:color, stroke:"#fff", "stroke-width":0.6});
+    }
+    if (shape === "diamond"){
+      var d = size*0.95;
+      var dp = [ [x, y-d], [x+d, y], [x, y+d], [x-d, y] ].map(function(p){return p[0]+","+p[1];}).join(" ");
+      return el("polygon", {points:dp, fill:color, stroke:"#fff", "stroke-width":0.6});
+    }
+  }
+
+  function niceLog10Ticks(min, max){
+    var ticks = [];
+    var start = Math.floor(Math.log10(min));
+    var end = Math.ceil(Math.log10(max));
+    for (var p = start; p <= end; p++){
+      ticks.push(Math.pow(10,p));
+    }
+    return ticks;
+  }
+
+  function drawLineChart(svgId, opts){
+    var svg = document.getElementById(svgId);
+    var W = 460, H = 300;
+    var ml = 54, mr = 14, mt = 16, mb = (opts.rotateLabels ? 46 : 34);
+    var plotW = W-ml-mr, plotH = H-mt-mb;
+    svg.setAttribute("viewBox", "0 0 " + W + " " + H);
+    svg.setAttribute("preserveAspectRatio","xMidYMid meet");
+
+    var n = opts.xLabels.length;
+    function xPos(i){ return ml + (n===1?0:(i/(n-1))*plotW); }
+
+    var yMin = opts.yMin, yMax = opts.yMax, log = !!opts.log;
+    function yPos(v){
+      if (log){
+        var lv = Math.log10(v), lMin = Math.log10(yMin), lMax = Math.log10(yMax);
+        return mt + plotH - ((lv-lMin)/(lMax-lMin))*plotH;
+      }
+      return mt + plotH - ((v-yMin)/(yMax-yMin))*plotH;
+    }
+
+    // background
+    svg.appendChild(el("rect", {x:0,y:0,width:W,height:H,fill:"none"}));
+
+    // gridlines + y ticks
+    var yTicks = log ? niceLog10Ticks(yMin, yMax) : opts.yTicks;
+    yTicks.forEach(function(t){
+      var y = yPos(t);
+      svg.appendChild(el("line", {x1:ml, x2:ml+plotW, y1:y, y2:y, stroke:"#E2E4DE", "stroke-width":0.7}));
+      var lbl = el("text", {x:ml-8, y:y+3, "text-anchor":"end", "font-size":9, "font-family":"IBM Plex Mono, monospace", fill:"#565F68"});
+      lbl.textContent = log ? (t>=1 ? t : t) : t;
+      svg.appendChild(lbl);
+    });
+
+    // axis lines
+    svg.appendChild(el("line", {x1:ml, x2:ml, y1:mt, y2:mt+plotH, stroke:"#1B1F23", "stroke-width":1}));
+    svg.appendChild(el("line", {x1:ml, x2:ml+plotW, y1:mt+plotH, y2:mt+plotH, stroke:"#1B1F23", "stroke-width":1}));
+
+    // baseline dashed vertical
+    if (typeof opts.baselineIndex === "number"){
+      var bx = xPos(opts.baselineIndex);
+      svg.appendChild(el("line", {x1:bx, x2:bx, y1:mt, y2:mt+plotH, stroke:"#8A929A", "stroke-width":1, "stroke-dasharray":"3,3"}));
+    }
+
+    // x tick labels
+    opts.xLabels.forEach(function(lab, i){
+      var x = xPos(i);
+      var t = el("text", {x:x, y:mt+plotH+16, "text-anchor": opts.rotateLabels ? "end":"middle",
+                           "font-size":9, "font-family":"IBM Plex Mono, monospace", fill:"#565F68"});
+      t.textContent = lab;
+      if (opts.rotateLabels){
+        t.setAttribute("transform", "rotate(-30 " + x + " " + (mt+plotH+16) + ")");
+      }
+      svg.appendChild(t);
+    });
+
+    // x axis label
+    var xl = el("text", {x: ml+plotW/2, y: H-4, "text-anchor":"middle", "font-size":9.5, "font-family":"IBM Plex Sans, sans-serif", fill:"#1B1F23"});
+    xl.textContent = opts.xAxisLabel || "";
+    svg.appendChild(xl);
+
+    // series
+    opts.series.forEach(function(s){
+      var pts = s.values.map(function(v,i){ return xPos(i) + "," + yPos(v); }).join(" ");
+      svg.appendChild(el("polyline", {points:pts, fill:"none", stroke:s.color, "stroke-width":1.6}));
+      s.values.forEach(function(v,i){
+        svg.appendChild(marker(s.marker, xPos(i), yPos(v), s.color));
+      });
+    });
+  }
+
+  function drawGroupedBarChart(svgId, opts){
+    var svg = document.getElementById(svgId);
+    var W = 460, H = 300;
+    var ml = 54, mr = 14, mt = 16, mb = 54;
+    var plotW = W-ml-mr, plotH = H-mt-mb;
+    svg.setAttribute("viewBox", "0 0 " + W + " " + H);
+    svg.setAttribute("preserveAspectRatio","xMidYMid meet");
+
+    var n = opts.categories.length;
+    var groupW = plotW / n;
+    var barW = groupW * 0.30;
+    var gap = groupW * 0.06;
+
+    function yPos(v){ return mt + plotH - ((v-opts.yMin)/(opts.yMax-opts.yMin))*plotH; }
+
+    opts.yTicks.forEach(function(t){
+      var y = yPos(t);
+      svg.appendChild(el("line", {x1:ml, x2:ml+plotW, y1:y, y2:y, stroke:"#E2E4DE", "stroke-width":0.7}));
+      var lbl = el("text", {x:ml-8, y:y+3, "text-anchor":"end", "font-size":9, "font-family":"IBM Plex Mono, monospace", fill:"#565F68"});
+      lbl.textContent = t;
+      svg.appendChild(lbl);
+    });
+
+    svg.appendChild(el("line", {x1:ml, x2:ml, y1:mt, y2:mt+plotH, stroke:"#1B1F23", "stroke-width":1}));
+    svg.appendChild(el("line", {x1:ml, x2:ml+plotW, y1:mt+plotH, y2:mt+plotH, stroke:"#1B1F23", "stroke-width":1}));
+
+    opts.categories.forEach(function(cat, i){
+      var gx = ml + i*groupW;
+      var xA = gx + groupW/2 - barW - gap/2;
+      var xI = gx + groupW/2 + gap/2;
+
+      var vA = opts.seriesA.values[i];
+      var vI = opts.seriesB.values[i];
+      var yA = yPos(vA), yI = yPos(vI);
+      var yBase = yPos(opts.yMin);
+
+      svg.appendChild(el("rect", {x:xA, y:yA, width:barW, height: yBase-yA, fill:opts.seriesA.color, stroke:"#1B1F23", "stroke-width":0.4}));
+      svg.appendChild(el("rect", {x:xI, y:yI, width:barW, height: yBase-yI, fill:opts.seriesB.color, stroke:"#1B1F23", "stroke-width":0.4}));
+
+      var t = el("text", {x: gx+groupW/2, y: mt+plotH+16, "text-anchor":"middle",
+                           "font-size":8.6, "font-family":"IBM Plex Mono, monospace", fill:"#565F68"});
+      // support two-line category labels
+      var parts = cat.split(" ");
+      t.textContent = parts.join(" ");
+      svg.appendChild(t);
+    });
+  }
+
+  // ---------- Legend renderer ----------
+  function renderLegend(containerId, metaSubset){
+    var box = document.getElementById(containerId);
+    metaSubset.forEach(function(m){
+      var item = document.createElement("div");
+      item.className = "legend-item";
+      var sw = document.createElement("span");
+      sw.className = "swatch";
+      sw.style.background = m.color;
+      item.appendChild(sw);
+      var txt = document.createElement("span");
+      txt.textContent = m.label;
+      item.appendChild(txt);
+      box.appendChild(item);
+    });
+  }
+
+  // ---------- Table renderer ----------
+  function renderTable(tbodyId, xLabels, data, baselineIndex, decimals){
+    var tbody = document.getElementById(tbodyId);
+    xLabels.forEach(function(lab, i){
+      var tr = document.createElement("tr");
+      if (i === baselineIndex) tr.className = "baseline-row";
+      var tdX = document.createElement("td");
+      tdX.textContent = lab;
+      tr.appendChild(tdX);
+      ["office2","room0","desk1","fr2xyz"].forEach(function(k){
+        var td = document.createElement("td");
+        td.textContent = data[k][i].toFixed(decimals);
+        tr.appendChild(td);
+      });
+      tbody.appendChild(tr);
+    });
+  }
+
+  // ================= EXP 01 =================
+  renderLegend("legend-01", SERIES_META);
+  drawLineChart("chart-01-psnr", {
+    xLabels: EXP01.xLabels, xAxisLabel: "Silhouette Threshold (τ)",
+    yMin:10, yMax:34, yTicks:[10,15,20,25,30,34], baselineIndex: EXP01.baselineIndex,
+    rotateLabels:true,
+    series: SERIES_META.map(function(m){ return {values:EXP01.psnr[m.key], color:m.color, marker:m.marker}; })
+  });
+  drawLineChart("chart-01-ate", {
+    xLabels: EXP01.xLabels, xAxisLabel: "Silhouette Threshold (τ)",
+    yMin:0.2, yMax:200, log:true, baselineIndex: EXP01.baselineIndex,
+    rotateLabels:true,
+    series: SERIES_META.map(function(m){ return {values:EXP01.ate[m.key], color:m.color, marker:m.marker}; })
+  });
+  renderTable("tbody-01-psnr", EXP01.xLabels, EXP01.psnr, EXP01.baselineIndex, 2);
+  renderTable("tbody-01-ate", EXP01.xLabels, EXP01.ate, EXP01.baselineIndex, 2);
+
+  // ================= EXP 02 =================
+  renderLegend("legend-02", SERIES_META);
+  drawLineChart("chart-02-psnr", {
+    xLabels: EXP02.xLabels, xAxisLabel: "Photometric Loss Weight",
+    yMin:10, yMax:34, yTicks:[10,15,20,25,30,34], baselineIndex: EXP02.baselineIndex,
+    series: SERIES_META.map(function(m){ return {values:EXP02.psnr[m.key], color:m.color, marker:m.marker}; })
+  });
+  drawLineChart("chart-02-ate", {
+    xLabels: EXP02.xLabels, xAxisLabel: "Photometric Loss Weight",
+    yMin:0.2, yMax:200, log:true, baselineIndex: EXP02.baselineIndex,
+    series: SERIES_META.map(function(m){ return {values:EXP02.ate[m.key], color:m.color, marker:m.marker}; })
+  });
+  renderTable("tbody-02-psnr", EXP02.xLabels, EXP02.psnr, EXP02.baselineIndex, 2);
+  renderTable("tbody-02-ate", EXP02.xLabels, EXP02.ate, EXP02.baselineIndex, 2);
+
+  // ================= EXP 03 =================
+  renderLegend("legend-03", SERIES_META);
+  drawLineChart("chart-03-psnr", {
+    xLabels: EXP03.xLabels, xAxisLabel: "Isotropic Regularization (λ_iso)",
+    yMin:22, yMax:37, yTicks:[22,26,30,34,37], baselineIndex: EXP03.baselineIndex,
+    series: SERIES_META.map(function(m){ return {values:EXP03.psnr[m.key], color:m.color, marker:m.marker}; })
+  });
+  drawLineChart("chart-03-ate", {
+    xLabels: EXP03.xLabels, xAxisLabel: "Isotropic Regularization (λ_iso)",
+    yMin:0.002, yMax:0.017, yTicks:[0.002,0.006,0.010,0.014,0.017], baselineIndex: EXP03.baselineIndex,
+    series: SERIES_META.map(function(m){ return {values:EXP03.ate[m.key], color:m.color, marker:m.marker}; })
+  });
+  renderTable("tbody-03-psnr", EXP03.xLabels, EXP03.psnr, EXP03.baselineIndex, 4);
+  renderTable("tbody-03-ate", EXP03.xLabels, EXP03.ate, EXP03.baselineIndex, 5);
+
+  // ================= EXP 04 =================
+  var exp04Legend = [
+    {label:"Anisotropic", color: COLORS.fr2xyz},
+    {label:"Isotropic", color: COLORS.office2}
+  ];
+  renderLegend("legend-04", exp04Legend);
+
+  drawGroupedBarChart("chart-04-psnr", {
+    categories: EXP04.categories,
+    yMin:0, yMax:40, yTicks:[0,10,20,30,40],
+    seriesA: {values: EXP04.psnrAniso, color: COLORS.fr2xyz},
+    seriesB: {values: EXP04.psnrIso, color: COLORS.office2}
+  });
+  drawGroupedBarChart("chart-04-ate", {
+    categories: EXP04.categories,
+    yMin:0, yMax:0.018, yTicks:[0,0.005,0.010,0.015,0.018],
+    seriesA: {values: EXP04.ateAniso, color: COLORS.fr2xyz},
+    seriesB: {values: EXP04.ateIso, color: COLORS.office2}
+  });
+
+  (function renderExp04Table(){
+    var tbody = document.getElementById("tbody-04");
+    EXP04.categories.forEach(function(cat, i){
+      var tr = document.createElement("tr");
+      var pAniso = EXP04.psnrAniso[i], pIso = EXP04.psnrIso[i];
+      var drop = ((pAniso - pIso)/pAniso*100).toFixed(2) + "%";
+      var cells = [cat, pAniso.toFixed(4), pIso.toFixed(4), drop, EXP04.ateAniso[i].toFixed(5), EXP04.ateIso[i].toFixed(5)];
+      cells.forEach(function(c){
+        var td = document.createElement("td");
+        td.textContent = c;
+        tr.appendChild(td);
+      });
+      tbody.appendChild(tr);
+    });
+  })();
+
+})();
+</script>
+
+</body>
+</html>

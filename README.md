@@ -1,1 +1,1 @@
-# NaufalGhifari.github.io-3DGS-sensitivity-analysis
+# 3DGS-sensitivity-analysis
