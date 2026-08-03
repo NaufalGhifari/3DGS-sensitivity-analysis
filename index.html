@@ -433,14 +433,14 @@
 
     <div class="findings-grid">
       <div class="finding-card">
-        <h3>Rendering quality is stable; tracking accuracy is not</h3>
+        <h3>Rendering quality is relatively stable compared to tracking accuracy</h3>
         <p>Across all three hyperparameter sweeps, PSNR follows a consistent, well-behaved curve for every scene which
         typically peaks at or near the baseline setting (0.99 - 0.9999). ATE RMSE, by contrast, has a scene-dependent optimum
         that shifts across hyperparameter values, sometimes disagreeing with the rendering-optimal setting entirely.</p>
       </div>
 
       <div class="finding-card">
-        <h3>Synthetic scenes swing harder than real-world scenes</h3>
+        <h3>Synthetic scenes are more sensitive to paramter modulation than real-world scenes</h3>
         <p>In the photometric loss weight experiment, synthetic Replica scenes (Office2, Room0) show an ~17-18 dB PSNR range across
         weights, while real world TUM scenes (fr1_desk, fr2_xyz) span only ~4-7 dB. This is consistent with real sensor noise,
         exposure variation, and motion blur compressing the dynamic range of the photometric signal. Although with
@@ -1098,7 +1098,7 @@
     </details>
  
     <div class="placeholder">
-      <span class="tag">Placeholder</span>
+      <span class="tag">WIP</span>
       <p>Convergence tables for the remaining scenes (Replica Office2, TUM fr1_desk, TUM fr2_xyz) for both MonoGS
       and SplaTAM are pending processing and will be added here. Room0 is shown as the representative scene used
       in the paper.</p>
@@ -1121,12 +1121,12 @@
     
     <p>All configuration files used in this study are included in the relevant repositories above.</p>
 
-    <div class="placeholder">
-      <span class="tag">Placeholder</span>
+    <!-- <div class="placeholder">
+      <span class="tag">WIP</span>
       <p>Links to code repositories to be added</p>
-      <!-- <p>Links to the code repository, exact config files per run, and raw console-output logs will be added here
-      once the repository is finalized for release.</p> -->
-    </div>
+      <p>Links to the code repository, exact config files per run, and raw console-output logs will be added here
+      once the repository is finalized for release.</p>
+    </div> -->
   </div>
 </section>
 
