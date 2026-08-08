@@ -1048,12 +1048,15 @@
     </div>
     <p class="lead">
       Reported as mean L<sub>2</sub> norm at initialization and at the final iteration (60 and 100 iterations for
-      tracking and mapping respectively), alongside total and late-stage percentage reduction. This answers a
-      dedicated convergence research question from the underlying technical report, distinct from the sensitivity
-      sweeps above — shown here for Replica Room0 as a representative scene, with one table per framework in the paper.
+      tracking and mapping respectively), alongside total and late-stage percentage reduction.
+      <ul>
+        <li>Total reduction: The percentage of total reduction in mean gradient norm within the whole optimisation window.</li>
+        <li>Late stage decay: The percentage change in mean gradient norm between the 80th-percentile iteration checkpoint and the final iteration, isolating convergence behavior within the last 20% of the logged optimization window.</li>
+      </ul>
+      
     </p>
  
-    <h3 class="exp-subhead">MonoGS — Replica Room0</h3>
+    <h3 class="exp-subhead">MonoGS Gradients Convergence</h3>
     <details class="tbl" open>
       <summary>MonoGS gradient convergence (Room0)</summary>
       <div class="tbl-inner">
@@ -1071,9 +1074,90 @@
             <tr><td>scales</td><td>0.001867</td><td>0.000941</td><td>49.57%</td><td>0.93%</td></tr>
             <tr><td>center</td><td>0.055357</td><td>0.046123</td><td>16.68%</td><td>−7.14%</td></tr>
           </tbody>
-        </table>
+        </table>  
+        <p><b>Replica 'Room0' Mapping Plot</b></p>
+        <img src="images/MonoGS/monogs_room0_mapping.png" alt="MonoGS Room0 Convergence Plot" style="max-width: 100%; height: auto; display: block;">
+
+        <p><b>Replica 'Room0' Tracking Plot</b></p>
+        <img src="images/MonoGS/monogs_room0_tracking.png" alt="MonoGS Room0 Convergence Plot" style="max-width: 100%; height: auto; display: block;">
       </div>
     </details>
+
+    <!-- <h3 class="exp-subhead">MonoGS — Replica Office2</h3> -->
+    <details class="tbl">
+      <summary>MonoGS gradient convergence (Office2)</summary>
+      <div class="tbl-inner">
+        <table>
+          <thead><tr><th>Parameter</th><th>Initial</th><th>Final</th><th>Total Reduction (%)</th><th>Late-Stage Decay (%)</th></tr></thead>
+          <tbody>
+            <tr class="stage-row"><td colspan="5">Tracking</td></tr>
+            <tr><td>cam_rot</td><td>0.406922</td><td>0.239974</td><td>41.03%</td><td>20.80%</td></tr>
+            <tr><td>cam_trans</td><td>0.165170</td><td>0.102900</td><td>37.70%</td><td>18.22%</td></tr>
+            <tr class="stage-row"><td colspan="5">Mapping</td></tr>
+            <tr><td>opacity</td><td>0.000223</td><td>0.000057</td><td>74.30%</td><td>7.58%</td></tr>
+            <tr><td>rotation</td><td>0.002603</td><td>0.001823</td><td>29.97%</td><td>-0.32%</td></tr>
+            <tr><td>scaling</td><td>0.001596</td><td>0.000729</td><td>54.33%</td><td>1.63%</td></tr>
+            <tr><td>xyz</td><td>0.055725</td><td>0.046831</td><td>15.96%</td><td>-5.08%</td></tr>
+          </tbody>
+        </table>
+        <p><b>Replica 'Office2' Mapping Plot</b></p>
+        <img src="images/MonoGS/monogs_office2_mapping.png" alt="MonoGS Room0 Convergence Plot" style="max-width: 100%; height: auto; display: block;">
+
+        <p><b>Replica 'Office2' Tracking Plot</b></p>
+        <img src="images/MonoGS/monogs_office2_tracking.png" alt="MonoGS Room0 Convergence Plot" style="max-width: 100%; height: auto; display: block;">
+      </div>
+    </details>
+
+    <!-- <h3 class="exp-subhead">MonoGS — TUM fr1_desk</h3> -->
+    <details class="tbl">
+      <summary>MonoGS gradient convergence (TUM fr1_desk)</summary>
+      <div class="tbl-inner">
+        <table>
+          <thead><tr><th>Parameter</th><th>Initial</th><th>Final</th><th>Total Reduction (%)</th><th>Late-Stage Decay (%)</th></tr></thead>
+          <tbody>
+            <tr class="stage-row"><td colspan="5">Tracking</td></tr>
+            <tr><td>cam_rot</td><td>1.29</td><td>0.030224</td><td>97.66%</td><td>56.01%</td></tr>
+            <tr><td>cam_trans</td><td>1.19</td><td>0.037814</td><td>96.82%</td><td>45.60%</td></tr>
+            <tr class="stage-row"><td colspan="5">Mapping</td></tr>
+            <tr><td>opacity</td><td>0.000545</td><td>0.000683</td><td>-25.25%</td><td>17.87%</td></tr>
+            <tr><td>rotation</td><td>0.012706</td><td>0.015983</td><td>-25.79%</td><td>2.52%</td></tr>
+            <tr><td>scaling</td><td>0.004434</td><td>0.005610</td><td>-26.52%</td><td>18.63%</td></tr>
+            <tr><td>xyz</td><td>0.304681</td><td>0.345114</td><td>-13.27%</td><td>-2.18%</td></tr>
+          </tbody>
+        </table>
+        <p><b>TUM 'fr1_desk' Mapping Plot</b></p>
+        <img src="images/MonoGS/monogs_fr1_desk_mapping.png" alt="MonoGS Room0 Convergence Plot" style="max-width: 100%; height: auto; display: block;">
+
+        <p><b>TUM 'fr1_desk' Tracking Plot</b></p>
+        <img src="images/MonoGS/monogs_fr1_desk_tracking.png" alt="MonoGS Room0 Convergence Plot" style="max-width: 100%; height: auto; display: block;">
+      </div>
+    </details>
+
+    <!-- <h3 class="exp-subhead">MonoGS — TUM fr2_xyz</h3> -->
+    <details class="tbl">
+      <summary>MonoGS gradient convergence (TUM fr2_xyz)</summary>
+      <div class="tbl-inner">
+        <table>
+          <thead><tr><th>Parameter</th><th>Initial</th><th>Final</th><th>Total Reduction (%)</th><th>Late-Stage Decay (%)</th></tr></thead>
+          <tbody>
+            <tr class="stage-row"><td colspan="5">Tracking</td></tr>
+            <tr><td>cam_rot</td><td>1.36</td><td>0.183521</td><td>86.50%</td><td>35.73%</td></tr>
+            <tr><td>cam_trans</td><td>1.00</td><td>0.124252</td><td>87.63%</td><td>39.95%</td></tr>
+            <tr class="stage-row"><td colspan="5">Mapping</td></tr>
+            <tr><td>opacity</td><td>0.000292</td><td>0.000744</td><td>-154.71%</td><td>17.75%</td></tr>
+            <tr><td>rotation</td><td>0.009733</td><td>0.023876</td><td>-145.31%</td><td>4.56%</td></tr>
+            <tr><td>scaling</td><td>0.002577</td><td>0.005336</td><td>-107.05%</td><td>22.87%</td></tr>
+            <tr><td>xyz</td><td>0.159321</td><td>0.300127</td><td>-88.38%</td><td>-4.92%</td></tr>
+          </tbody>
+        </table>
+        <p><b>TUM 'fr2_xyz' Mapping Plot</b></p>
+        <img src="images/MonoGS/monogs_fr2_xyz_mapping.png" alt="MonoGS Room0 Convergence Plot" style="max-width: 100%; height: auto; display: block;">
+
+        <p><b>TUM 'fr2_xyz' Tracking Plot</b></p>
+        <img src="images/MonoGS/monogs_fr2_xyz_tracking.png" alt="MonoGS Room0 Convergence Plot" style="max-width: 100%; height: auto; display: block;">
+      </div>
+    </details>
+
  
     <h3 class="exp-subhead">SplaTAM — Replica Room0</h3>
     <details class="tbl">
@@ -1092,17 +1176,107 @@
             <tr><td>center</td><td>0.022471</td><td>0.018368</td><td>18.26%</td><td>6.52%</td></tr>
           </tbody>
         </table>
-        <p class="tbl-note">Mapping rotation: rotation gradients are not computed because of the shape of isotropic
-        Gaussians used in SplaTAM (i.e. perfectly spherical), which renders rotation irrelevant.</p>
+        <p class="tbl-note">Mapping rotation: rotation gradients are not computed because of the shape of isotropic Gaussians used in SplaTAM (i.e. perfectly spherical), which renders rotation irrelevant.</p>
+        
+        <p><b>Replica 'Room0' Mapping Plot</b></p>
+        <img src="images/splatam_room0_mapping.png" alt="SplaTAM Room0 Convergence Plot" style="max-width: 100%; height: auto; display: block;">
+        <p class="tbl-note">Mapping rotation: rotation gradients are not computed because of the shape of isotropic Gaussians used in SplaTAM (i.e. perfectly spherical), which renders rotation irrelevant.</p>
+
+        <p><b>Replica 'Room0' Tracking Plot</b></p>
+        <img src="images/splatam_room0_tracking.png" alt="SplaTAM Room0 Convergence Plot" style="max-width: 100%; height: auto; display: block;">
+      </div>
+      
+    </details>
+    
+    <details class="tbl">
+      <summary>SplaTAM gradient convergence (Office2)</summary>
+      <div class="tbl-inner">
+        <table>
+          <thead><tr><th>Parameter</th><th>Initial</th><th>Final</th><th>Total Reduction (%)</th><th>Late-Stage Decay (%)</th></tr></thead>
+          <tbody>
+            <tr class="stage-row"><td colspan="5">Tracking</td></tr>
+            <tr><td>rot_norm</td><td>930,579.23</td><td>348,707.88</td><td>62.53%</td><td>13.42%</td></tr>
+            <tr><td>trans_norm</td><td>233,627.70</td><td>84,600.93</td><td>63.79%</td><td>13.74%</td></tr>
+            <tr class="stage-row"><td colspan="5">Mapping</td></tr>
+            <tr><td>opacity</td><td>0.000046</td><td>0.000024</td><td>48.99%</td><td>6.21%</td></tr>
+            <tr><td>rotation</td><td class="na">N/A</td><td class="na">N/A</td><td class="na">N/A</td><td class="na">N/A</td></tr>
+            <tr><td>scale</td><td>0.000292</td><td>0.000238</td><td>18.52%</td><td>-7.54%</td></tr>
+            <tr><td>means</td><td>0.020208</td><td>0.015063</td><td>25.46%</td><td>1.29%</td></tr>
+          </tbody>
+        </table>
+        <p class="tbl-note">Mapping rotation: rotation gradients are not computed because of the shape of isotropic Gaussians used in SplaTAM (i.e. perfectly spherical), which renders rotation irrelevant.</p>
+        
+        <p><b>Replica 'Office2' Mapping Plot</b></p>
+        <img src="images/splatam_office2_mapping.png" alt="SplaTAM Room0 Convergence Plot" style="max-width: 100%; height: auto; display: block;">
+        <p class="tbl-note">Mapping rotation: rotation gradients are not computed because of the shape of isotropic Gaussians used in SplaTAM (i.e. perfectly spherical), which renders rotation irrelevant.</p>
+
+        <p><b>Replica 'Office2' Tracking Plot</b></p>
+        <img src="images/splatam_office2_tracking.png" alt="SplaTAM Room0 Convergence Plot" style="max-width: 100%; height: auto; display: block;">
       </div>
     </details>
+
+    <details class="tbl">
+      <summary>SplaTAM gradient convergence (TUM fr1_desk)</summary>
+      <div class="tbl-inner">
+        <table>
+          <thead><tr><th>Parameter</th><th>Initial</th><th>Final</th><th>Total Reduction (%)</th><th>Late-Stage Decay (%)</th></tr></thead>
+          <tbody>
+            <tr class="stage-row"><td colspan="5">Tracking</td></tr>
+            <tr><td>rot_norm</td><td>2,031,877.99</td><td>95,107.02</td><td>95.32%</td><td>-51.60%</td></tr>
+            <tr><td>trans_norm</td><td>954,696.97</td><td>39,454.10</td><td>95.87%</td><td>-50.29%</td></tr>
+            <tr class="stage-row"><td colspan="5">Mapping</td></tr>
+            <tr><td>opacity</td><td>0.000165</td><td>0.000159</td><td>3.56%</td><td>1.58%</td></tr>
+            <tr><td>rotation</td><td class="na">N/A</td><td class="na">N/A</td><td class="na">N/A</td><td class="na">N/A</td></tr>
+            <tr><td>scale</td><td>0.000685</td><td>0.000702</td><td>-2.41%</td><td>-10.19%</td></tr>
+            <tr><td>means</td><td>0.077727</td><td>0.074721</td><td>3.87%</td><td>-1.41%</td></tr>
+          </tbody>
+        </table>
+        <p class="tbl-note">Mapping rotation: rotation gradients are not computed because of the shape of isotropic Gaussians used in SplaTAM (i.e. perfectly spherical), which renders rotation irrelevant.</p>
+        
+        <p><b>TUM 'fr1_desk' Mapping Plot</b></p>
+        <img src="images/splatam_fr1_desk_mapping.png" alt="SplaTAM Room0 Convergence Plot" style="max-width: 100%; height: auto; display: block;">
+        <p class="tbl-note">Mapping rotation: rotation gradients are not computed because of the shape of isotropic Gaussians used in SplaTAM (i.e. perfectly spherical), which renders rotation irrelevant.</p>
+
+        <p><b>TUM 'fr1_desk' Tracking Plot</b></p>
+        <img src="images/splatam_fr1_desk_tracking.png" alt="SplaTAM Room0 Convergence Plot" style="max-width: 100%; height: auto; display: block;">
+      </div>
+    </details>
+
+    <details class="tbl">
+      <summary>SplaTAM gradient convergence (TUM fr2_xyz)</summary>
+      <div class="tbl-inner">
+        <table>
+          <thead><tr><th>Parameter</th><th>Initial</th><th>Final</th><th>Total Reduction (%)</th><th>Late-Stage Decay (%)</th></tr></thead>
+          <tbody>
+            <tr class="stage-row"><td colspan="5">Tracking</td></tr>
+            <tr><td>rot_norm</td><td>2,746,095.70</td><td>23,119.17</td><td>99.16%</td><td>-86.22%</td></tr>
+            <tr><td>trans_norm</td><td>1,081,017.98</td><td>8,958.87</td><td>99.17%</td><td>-82.78%</td></tr>
+            <tr class="stage-row"><td colspan="5">Mapping</td></tr>
+            <tr><td>opacity</td><td>0.000187</td><td>0.000182</td><td>2.56%</td><td>0.66%</td></tr>
+            <tr><td>rotation</td><td class="na">N/A</td><td class="na">N/A</td><td class="na">N/A</td><td class="na">N/A</td></tr>
+            <tr><td>scale</td><td>0.000874</td><td>0.000846</td><td>3.19%</td><td>-0.25%</td></tr>
+            <tr><td>means</td><td>0.056762</td><td>0.052134</td><td>8.15%</td><td>1.43%</td></tr>
+          </tbody>
+        </table>
+        <p class="tbl-note">Mapping rotation: rotation gradients are not computed because of the shape of isotropic Gaussians used in SplaTAM (i.e. perfectly spherical), which renders rotation irrelevant.</p>
+        
+        <p><b>TUM 'fr2_xyz' Mapping Plot</b></p>
+        <img src="images/splatam_fr2_xyz_mapping.png" alt="SplaTAM Room0 Convergence Plot" style="max-width: 100%; height: auto; display: block;">
+        <p class="tbl-note">Mapping rotation: rotation gradients are not computed because of the shape of isotropic Gaussians used in SplaTAM (i.e. perfectly spherical), which renders rotation irrelevant.</p>
+
+        <p><b>TUM 'fr2_xyz' Tracking Plot</b></p>
+        <img src="images/splatam_fr2_xyz_tracking.png" alt="SplaTAM Room0 Convergence Plot" style="max-width: 100%; height: auto; display: block;">
+      </div>
+    </details>
+
+
  
-    <div class="placeholder">
+    <!-- <div class="placeholder">
       <span class="tag">WIP</span>
       <p>Convergence tables for the remaining scenes (Replica Office2, TUM fr1_desk, TUM fr2_xyz) for both MonoGS
       and SplaTAM are pending processing and will be added here. Room0 is shown as the representative scene used
       in the paper.</p>
-    </div>
+    </div> -->
   </div>
 </section>
 
